@@ -19,6 +19,7 @@
             $_SESSION['firstname'] = $user->firstname;
             $_SESSION['lastname'] = $user->lastname;
             $_SESSION['profilePicture'] = $user->profilePhoto;
+            $_SESSION['role'] = $user->role;
             //die(var_dump($_SESSION['profilePicture']));
 
             header("Location:../views/acceuil.php?success");
