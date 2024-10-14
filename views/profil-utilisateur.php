@@ -1,27 +1,20 @@
 <?php
-    ob_start(); 
+    ob_start();
     include('../upload/connexion.php');
-    $database = new Connexion();
-    $con = $database->get_connexion();
-    if(isset($_GET['designation'])) {
-        if(!empty($_GET['designation'])) {
-            $search = '%' . $_GET['designation'] . '%';
-            $req = $con->prepare("SELECT * FROM utilisateur WHERE role LIKE ? OR nom_utilisateurs LIKE ?");
-            $req->execute([$search,$search]);
-        }
-        else {
-            $req = $con->prepare("SELECT * FROM utilisateur");
-            $req->execute(); 
-        }
-    }
-    else {
-       $req = $con->prepare("SELECT * FROM utilisateur");
-       $req->execute(); 
-    }
+    session_start();
+    $role = $_SESSION['role'];
     
+    
+    $username = array($_SESSION['username']);
+    $database = new Connexion();
+    
+    $con = $database->get_connexion();
+    $req = $con->prepare("SELECT * FROM utilisateur WHERE nom_utilisateurs = ?");
+    $req->execute($username,);
+    $data = $req->fetch();
 
 
-    $titre = "Gestion des Utilisateurs";
+    $titre = "Profil Utilisateur";
 ?>
 
     <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
@@ -57,6 +50,7 @@
                             <select name="role" id="role" class="form-control">
                                 <option value="Comptable">Comptable</option>
                                 <option value="Gerant">Gérant</option>
+                                <option value="vendeur">Vendeur</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -101,7 +95,7 @@
     
     <div class="content">
         <h3 class="mt-5"><?=$titre?></h3>
-        <button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addModal">Ajouter</button>
+        
 
         <?php if(isset($_GET['msg']) && isset($_GET['status'])){?>
         <div class="alert alert-<?=$_GET['status']?> alert-dismissible fade show mt-1" role="alert">
@@ -109,59 +103,45 @@
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">x</button>
         </div>
         <?php }?>
-        
-        <form method="post" id="Form" class="" action="../upload/upload-rechercher-utilisateur.php">
-            <div class="col-md-12 ">
-                <div class="form-group d-flex justify-content-inline float-right">
-                    <label hidden for="designation">Description</label>
-                    <input type="text"  class="form-control col-5" id="description" name="designation">
-                    <input type="submit" class="btn btn-secondary mb-1" value="Rechercher">
+
+
+
+        <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <img src=" '.images/<?=$data->profilePhoto; ?> . '" class="card-img-top" alt="Photo de profil">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Nom de l'utilisateur</h5>
+                        <p class="card-text text-uppercase"><?=$data->nom_utilisateurs ?></p>
+                        
+                    </div>
                 </div>
-                
             </div>
-            
-        </form>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Informations Personnelles</h5>
+                        <p hidden>ID: <?=$data->id ?></p>
+                        
+                        <p class="card-text"><strong>NOM:</strong> <?=$data->firstname ?></p>
+                        <p class="card-text"><strong>POSTNOM:</strong> <?=$data->lastname ?></p>
+                        <p class="card-text"><strong>ROLE:</strong> <?=$data->role ?></p>
+                        <div class="mt-3">
+                        <button data-toggle="modal" data-target="#addModal" class="btn btn-warning btn-sm editbtn" id="editbtn">Modifier</button>
+                        <a class="btn btn-danger btn-sm deletebtn" data-toggle="modal" data-target="#modalSuppression">Supprimer mon compte</a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 
-        <table class="table table-striped mt-3">
-            <thead>
-                <tr>
-                    <th>Numero</th>
-                    <th hidden>ID</th>
-                    <th>Noms</th>
-                    <th>Postnoms</th>
-                    <th>Nom Utilisateurs</th>
-                    <th>Roles</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $num = 0;
-                while($data = $req->fetch()){
-                    $num ++;
-                    ?>
-                        <tr>
-                            <td><?=$num ?></td>
-                            <td hidden><?=$data->id ?></td>
-                            <td><?=$data->firstname ?></td>
-                            <td><?=$data->lastname ?></td>
-                            <td><?=$data->nom_utilisateurs ?></td>
-                            <td><?=$data->role ?></td>
-                            <td>
-                                <button data-toggle="modal" data-target="#addModal" class="btn btn-warning btn-sm editbtn" id="editbtn">Mod</button>
-                                <a class="btn btn-danger btn-sm deletebtn" data-toggle="modal" data-target="#modalSuppression">sup</a>
-                            </td>
-                        </tr>
-                    <?php
-                }                    
-                ?>
-                    
-                    
-                
-            </tbody>
-        </table>
+
+        
        
     </div>
     
@@ -195,149 +175,3 @@
     });
     function setModal(label, valeur){var modal = $('#modalSuppression');var btn = $('.deletebtn');var span = $('.close');label.innerHTML = valeur;showElement(modal);$('.close').on('click', ()=> {hideElement(modal);});$('.non').on('click', ()=> {hideElement(modal);});window.addEventListener("click", function(event) {if(event.target === modal){hideElement(modal);}});}
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
